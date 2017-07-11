@@ -1,6 +1,8 @@
 var canvas = document.getElementById("myCanvas");
 var ctx = canvas.getContext("2d");	
 var blockWidth = 20;
+var FPS = 100;
+var blockPerSec = blockWidth/FPS;
 var cubePre = [];
 var cubeCur = [];
 
@@ -18,6 +20,8 @@ var row = 12;
 
 var rotDir = { CW:1, CCW:0 };
 var groupCount = 0;
+var lineX = 0;
+var lineSpeed = 4;
 
 defaultGrid();
 drawGrid();
@@ -34,7 +38,7 @@ setColor();
 document.addEventListener("keydown", keyDownHandler, false);
 document.addEventListener("keyup", keyUpHandler, false);
 
-setInterval( draw, 10 );
+setInterval( draw, 1000/FPS );
 
 function keyDownHandler(e) {
 	if(e.keyCode == 37) {
@@ -89,6 +93,7 @@ function resetXy(){
 	cubeCur[2][0] = cubeCur[3][0] = cubePre[2][0] = cubePre[3][0] = 8;
 	cubeCur[0][1] = cubeCur[2][1] = cubePre[0][1] = cubePre[2][1] = 0;
 	cubeCur[1][1] = cubeCur[3][1] = cubePre[1][1] = cubePre[3][1] = 1;
+	downPressed = false;
 }
 
 function setColor(){
@@ -120,8 +125,8 @@ function drawGrid(){
 		for( var r=2; r<row; r++ ){
 			if( !grid[c][r].grouped ){
 				ctx.beginPath();
-				ctx.rect(grid[c][r].x, grid[c][r].y, blockWidth, blockWidth);
 				ctx.strokeStyle = "gray";
+				ctx.rect(grid[c][r].x, grid[c][r].y, blockWidth, blockWidth);
 				ctx.stroke();
 				ctx.closePath();
 			}
@@ -233,11 +238,23 @@ function checkGroup( index ){
 	}
 }
 
-function draw(){
+function drawLine(){
 	
+	ctx.strokeStyle = '#ff0000';
+	ctx.lineWidth = 2;
+	ctx.beginPath();
+	
+	ctx.moveTo(lineX, 0); ctx.lineTo(lineX, 240);
+	ctx.stroke();
+	ctx.closePath();
+	lineX += lineSpeed * blockPerSec;
+	if(lineX >= 320) lineX = 0;
+}
+
+function draw(){
+	ctx.clearRect( 0, 0, canvas.width, canvas.height );
 	drawBlock();
 	drawGrid();
-	
 	
 	if( !isSpliting && downPressed ) {
 		if( cubeCur[1][1] < 11 ){
@@ -329,4 +346,7 @@ function draw(){
 		dropCounter = -10;
 	}
 	dropCounter += 10;
+	
+	
+	drawLine();
 }
