@@ -89,11 +89,11 @@ function defaultGrid(){
 }
 
 function resetXy(){
+	downPressed = false;
 	cubeCur[0][0] = cubeCur[1][0] = cubePre[0][0] = cubePre[1][0] = 7;
 	cubeCur[2][0] = cubeCur[3][0] = cubePre[2][0] = cubePre[3][0] = 8;
 	cubeCur[0][1] = cubeCur[2][1] = cubePre[0][1] = cubePre[2][1] = 0;
 	cubeCur[1][1] = cubeCur[3][1] = cubePre[1][1] = cubePre[3][1] = 1;
-	downPressed = false;
 }
 
 function setColor(){
@@ -206,7 +206,7 @@ function moveDownSide( splitSide ){
 	grid[ cubePre[splitSide-1][0] ][ cubePre[splitSide-1][1] ].color = "black";
 }
 
-function checkGroup( index ){	
+/*function checkGroup( index ){	
 	var xTmp = cubeCur[index][0];
 	var yTmp = cubeCur[index][1];
 	var temp = [];
@@ -236,6 +236,35 @@ function checkGroup( index ){
 		skip = false;
 		
 	}
+}*/
+
+function checkGroup( x, y ){
+	var dXy = [ {x:-1, y:-1}, {x:0, y:-1}, {x:-1, y:0} ];
+	for( var i=0; i<3; i++ ){
+		if( !grid[x+dXy[i].x][y+dXy[i].y].isFilled || grid[x][y].color != grid[x+dXy[i].x][y+dXy[i].y].color ){
+			return false;
+		}
+	}
+	return true;
+}
+
+function drawGroup(){
+	for( var c=column-1; c>0; c-- ){
+		for( var r=3; r<row; r++ ){
+			if( grid[c][r].color != "black" && grid[c][r].isFilled ){
+				if( checkGroup( c, r ) ){
+					ctx.beginPath();
+					ctx.strokeStyle = "gray";
+					ctx.fillStyle = grid[c][r].color;
+					ctx.rect( grid[c-1][r-1].x, grid[c-1][r-1].y, 2*blockWidth, 2*blockWidth );
+					ctx.fill();
+					ctx.stroke();
+					ctx.closePath();
+				}
+			}
+			
+		}
+	}
 }
 
 function drawLine(){
@@ -253,8 +282,9 @@ function drawLine(){
 
 function draw(){
 	ctx.clearRect( 0, 0, canvas.width, canvas.height );
-	drawBlock();
+	drawBlock();	
 	drawGrid();
+	drawGroup();
 	
 	if( !isSpliting && downPressed ) {
 		if( cubeCur[1][1] < 11 ){
@@ -266,7 +296,7 @@ function draw(){
 				if( grid[ cubeCur[1][0] ][ cubeCur[1][1]+1 ].isFilled ){
 					grid[ cubeCur[0][0] ][ cubeCur[0][1] ].isFilled = true;
 					grid[ cubeCur[1][0] ][ cubeCur[1][1] ].isFilled = true;					
-					checkGroup(1);
+					//checkGroup(1);
 					
 					splitSide = 3;
 				}
