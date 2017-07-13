@@ -275,14 +275,17 @@ function drawLine(){
 	ctx.stroke();
 	ctx.closePath();	
 	lineX += lineSpeed * blockPerSec;
-		
-	deleteGroup();
 	
-	if(lineX > 320) lineX = 0;	
+	if(lineX >= 320){
+		lineX = 0;
+		//release();
+		console.log("oh");
+	}
+	deleteGroup();
 }
 
 function release(){
-	console.log("release");
+	//console.log("release");
 }
 
 var preLineColumn = 0;
@@ -293,7 +296,7 @@ function deleteGroup(){
 	//var lineColumn = intLineX/blockWidth;
 	var lineColumn = Math.floor(lineX/blockWidth);
 	
-	if( lineColumn != preLineColumn && lineColumn < 16 ){
+	if( lineColumn != preLineColumn ){
 		var keepDeleting = false;
 		for( var r=3; r<row; r++ ){
 			if( grid[lineColumn][r].deleting ){
@@ -306,7 +309,7 @@ function deleteGroup(){
 		}
 		preLineColumn = lineColumn;
 	}
-	
+	//console.log(lineColumn);
 	if( lineColumn < 15 ){
 		//console.log(lineColumn);
 		//preLineColumn = lineColumn;
@@ -326,7 +329,6 @@ function deleteGroup(){
 			
 		}
 	}
-	if( lineColumn == 16 ) console.log("ya");
 }
 
 function drawDeleting(){
