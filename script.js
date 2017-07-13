@@ -42,7 +42,8 @@ setInterval( draw, 1000/FPS );
 
 function keyDownHandler(e) {
 	if(e.keyCode == 37) {
-		if( !isSpliting && cubeCur[0][0] > 0 && ( !grid[ cubeCur[0][0]-1 ][ cubeCur[0][1] ].isFilled && !grid[ cubeCur[1][0]-1 ][ cubeCur[1][1] ].isFilled ) ){
+		if( !isSpliting && cubeCur[0][0] > 0 && 
+			( !grid[cubeCur[0][0]-1][cubeCur[0][1]].isFilled && !grid[cubeCur[1][0]-1][cubeCur[1][1]].isFilled ) ){
 			moveLeft();
 			//drawBlock();
 			//drawGrid();	
@@ -54,7 +55,8 @@ function keyDownHandler(e) {
 		}
 	}
 	else if(e.keyCode == 39) {
-		if( !isSpliting && cubeCur[2][0] < 15 && ( !grid[ cubeCur[2][0]+1 ][ cubeCur[2][1] ].isFilled && !grid[ cubeCur[3][0]+1 ][ cubeCur[3][1] ].isFilled ) ){
+		if( !isSpliting && cubeCur[2][0] < 15 && 
+			( !grid[cubeCur[2][0]+1][cubeCur[2][1]].isFilled && !grid[cubeCur[3][0]+1][cubeCur[3][1]].isFilled ) ){
 			moveRight();
 			//drawBlock();
 			//drawGrid();	
@@ -83,7 +85,7 @@ function defaultGrid(){
 		grid[c] = [];
 		for( var r=0; r<row; r++ ){
 			grid[c][r] = { x:c*blockWidth, y:r*blockWidth, color:"black", 
-						   isFilled:false, grouped:false, groupNum:0  };			
+						   isFilled:false, deleting:false  };			
 		}
 	}
 }
@@ -239,7 +241,7 @@ function moveDownSide( splitSide ){
 }*/
 
 function checkGroup( x, y ){
-	var dXy = [ {x:-1, y:-1}, {x:0, y:-1}, {x:-1, y:0} ];
+	var dXy = [ {x:0, y:-1}, {x:1, y:-1}, {x:1, y:0} ];
 	for( var i=0; i<3; i++ ){
 		if( !grid[x+dXy[i].x][y+dXy[i].y].isFilled || grid[x][y].color != grid[x+dXy[i].x][y+dXy[i].y].color ){
 			return false;
@@ -249,14 +251,14 @@ function checkGroup( x, y ){
 }
 
 function drawGroup(){
-	for( var c=column-1; c>0; c-- ){
+	for( var c=column-2; c>0; c-- ){
 		for( var r=3; r<row; r++ ){
-			if( grid[c][r].color != "black" && grid[c][r].isFilled ){
+			if( grid[c][r].isFilled ){
 				if( checkGroup( c, r ) ){
 					ctx.beginPath();
 					ctx.strokeStyle = "gray";
 					ctx.fillStyle = grid[c][r].color;
-					ctx.rect( grid[c-1][r-1].x, grid[c-1][r-1].y, 2*blockWidth, 2*blockWidth );
+					ctx.rect( grid[c][r-1].x, grid[c][r-1].y, 2*blockWidth, 2*blockWidth );
 					ctx.fill();
 					ctx.stroke();
 					ctx.closePath();
@@ -275,9 +277,37 @@ function drawLine(){
 	
 	ctx.moveTo(lineX, 0); ctx.lineTo(lineX, 240);
 	ctx.stroke();
-	ctx.closePath();
+	ctx.closePath();	
 	lineX += lineSpeed * blockPerSec;
-	if(lineX >= 320) lineX = 0;
+		
+	deleteGroup();
+	
+	if(lineX > 320) lineX = 0;	
+}
+
+//var preLineColumn = -1;
+
+function deleteGroup(){
+	var dXy = [ {x:0, y:-1}, {x:1, y:-1}, {x:0, y:0}, {x:1, y:0} ];
+	//var intLineX = Math.floor(lineX);
+	//var lineColumn = intLineX/blockWidth;
+	var lineColumn = Math.floor(lineX/blockWidth);
+	
+	if( lineColumn < 15 ){
+		console.log(lineColumn);
+		//preLineColumn = lineColumn;
+		/*for( var r=3; r<row; r++ ){
+			if( grid[lineColumn][r].isFilled ){
+				if( checkGroup( lineColumn, r ) ){
+					//lable the blocks to be deleted
+					for( var i=0; i<4; i++ ){
+						grid[lineColumn+dXy[i].x][r+dXy[i].y].deleting = true;
+					}
+				}
+			}
+			
+		}*/
+	}
 }
 
 function draw(){
@@ -287,26 +317,33 @@ function draw(){
 	drawGroup();
 	
 	if( !isSpliting && downPressed ) {
+		//not at the bottom
 		if( cubeCur[1][1] < 11 ){
+			//2 blocks below are not filled
 			if( !grid[ cubeCur[1][0] ][ cubeCur[1][1]+1 ].isFilled && !grid[ cubeCur[3][0] ][ cubeCur[3][1]+1 ].isFilled ){
 				moveDown();
 			}
+			//one of the blocks below is filled
 			else if( !( grid[ cubeCur[1][0] ][ cubeCur[1][1]+1 ].isFilled && grid[ cubeCur[3][0] ][ cubeCur[3][1]+1 ].isFilled ) ){
 				isSpliting = true;
+				//the left one is filled
 				if( grid[ cubeCur[1][0] ][ cubeCur[1][1]+1 ].isFilled ){
 					grid[ cubeCur[0][0] ][ cubeCur[0][1] ].isFilled = true;
-					grid[ cubeCur[1][0] ][ cubeCur[1][1] ].isFilled = true;					
-					//checkGroup(1);
-					
+					grid[ cubeCur[1][0] ][ cubeCur[1][1] ].isFilled = true;
 					splitSide = 3;
 				}
+				//the right one is filled
 				else{
 					grid[ cubeCur[2][0] ][ cubeCur[2][1] ].isFilled = true;
 					grid[ cubeCur[3][0] ][ cubeCur[3][1] ].isFilled = true;
 					splitSide = 1;
 				}
 			}
+			//2 blocks below are filled
 			else{
+				if( cubeCur[1][1] == 1 ){
+					console.log("Game Over.");
+				}
 				for( var i=0; i<4; i++ ){
 					grid[ cubeCur[i][0] ][ cubeCur[i][1] ].isFilled = true;
 				}
@@ -358,6 +395,9 @@ function draw(){
 				}
 			}
 			else{
+				if( cubeCur[1][1] == 1 ){
+					console.log("Game Over.");
+				}
 				for( var i=0; i<4; i++ ){
 					grid[ cubeCur[i][0] ][ cubeCur[i][1] ].isFilled = true;
 				}
@@ -375,8 +415,9 @@ function draw(){
 		}
 		dropCounter = -10;
 	}
-	dropCounter += 10;
+	dropCounter += 10;	
 	
-	
+	//deleteGroup();
 	drawLine();
+	
 }
