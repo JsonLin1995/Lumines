@@ -21,7 +21,7 @@ var row = 12;
 var rotDir = { CW:1, CCW:0 };
 var groupCount = 0;
 var lineX = 0;
-var lineSpeed = 4;
+var lineSpeed = 2;
 
 defaultGrid();
 drawGrid();
@@ -108,15 +108,11 @@ function drawBlock(){
 	for( var c=0; c<column; c++ ){
 		for( var r=0; r<row; r++ ){
 			ctx.beginPath();
-			if( grid[c][r].grouped ){
-				ctx.rect(grid[c][r].x, grid[c][r].y, blockWidth, blockWidth);
-			}
-			else{
-				ctx.rect(grid[c][r].x+1, grid[c][r].y+1, blockWidth-2, blockWidth-2);
-			}
-			
+			ctx.rect(grid[c][r].x, grid[c][r].y, blockWidth, blockWidth);		
 			ctx.fillStyle = grid[c][r].color;
+			ctx.strokeStyle = "black";
 			ctx.fill();
+			ctx.stroke();
 			ctx.closePath();
 		}
 	}
@@ -285,7 +281,11 @@ function drawLine(){
 	if(lineX > 320) lineX = 0;	
 }
 
-//var preLineColumn = -1;
+function release(){
+	console.log("release");
+}
+
+var preLineColumn = 0;
 
 function deleteGroup(){
 	var dXy = [ {x:0, y:-1}, {x:1, y:-1}, {x:0, y:0}, {x:1, y:0} ];
@@ -293,10 +293,25 @@ function deleteGroup(){
 	//var lineColumn = intLineX/blockWidth;
 	var lineColumn = Math.floor(lineX/blockWidth);
 	
+	if( lineColumn != preLineColumn && lineColumn < 16 ){
+		var keepDeleting = false;
+		for( var r=3; r<row; r++ ){
+			if( grid[lineColumn][r].deleting ){
+				keepDeleting = true;
+				break;
+			}
+		}
+		if( !keepDeleting ){
+			release();
+		}
+		preLineColumn = lineColumn;
+	}
+	
 	if( lineColumn < 15 ){
-		console.log(lineColumn);
+		//console.log(lineColumn);
 		//preLineColumn = lineColumn;
-		/*for( var r=3; r<row; r++ ){
+		var noGroupCounter = 0;
+		for( var r=3; r<row; r++ ){
 			if( grid[lineColumn][r].isFilled ){
 				if( checkGroup( lineColumn, r ) ){
 					//lable the blocks to be deleted
@@ -304,9 +319,31 @@ function deleteGroup(){
 						grid[lineColumn+dXy[i].x][r+dXy[i].y].deleting = true;
 					}
 				}
+				else{
+					noGroupCounter++;
+				}
 			}
 			
-		}*/
+		}
+	}
+	if( lineColumn == 16 ) console.log("ya");
+}
+
+function drawDeleting(){
+	for( var c=0; c<column; c++ ){
+		for( var r=2; r<row; r++ ){
+			if( grid[c][r].deleting ){
+				var deleteWidth = Math.min( lineX-grid[c][r].x, blockWidth );
+				deleteWidth = deleteWidth<0?0:deleteWidth;
+				ctx.beginPath();				
+				ctx.rect( grid[c][r].x, grid[c][r].y, deleteWidth, blockWidth );		
+				ctx.fillStyle = "black";
+				//ctx.strokeStyle = "black";
+				ctx.fill();
+				//ctx.stroke();
+				ctx.closePath();
+			}
+		}
 	}
 }
 
@@ -415,9 +452,8 @@ function draw(){
 		}
 		dropCounter = -10;
 	}
-	dropCounter += 10;	
+	dropCounter += 10;		
 	
-	//deleteGroup();
 	drawLine();
-	
+	drawDeleting();
 }
