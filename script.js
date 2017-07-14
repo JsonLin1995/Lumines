@@ -279,7 +279,7 @@ function drawLine(){
 	if(lineX >= 320){
 		lineX = 0;
 		release( column );
-		console.log("oh");
+		//console.log("oh");
 	}
 	deleteGroup();
 }
@@ -359,6 +359,19 @@ function drawDeleting(){
 				ctx.fill();
 				//ctx.stroke();
 				ctx.closePath();
+			}
+		}
+	}
+}
+
+function gravity(){
+	for( var c=0; c<column; c++ ){
+		for( var r=row-2; r>1; r-- ){
+			if( grid[c][r].isFilled && !grid[c][r+1].isFilled ){
+				grid[c][r+1].isFilled = true;
+				grid[c][r+1].color = grid[c][r].color;
+				grid[c][r].isFilled = false;
+				grid[c][r].color = "black";
 			}
 		}
 	}
@@ -469,8 +482,9 @@ function draw(){
 		}
 		dropCounter = -10;
 	}
-	dropCounter += 10;		
+	dropCounter += 10;	
 	
-	drawLine();
 	drawDeleting();
+	drawLine();
+	gravity();
 }
