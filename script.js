@@ -278,14 +278,23 @@ function drawLine(){
 	
 	if(lineX >= 320){
 		lineX = 0;
-		//release();
+		release( column );
 		console.log("oh");
 	}
 	deleteGroup();
 }
 
-function release(){
+function release( boundColumn ){
 	//console.log("release");
+	for( var c=0; c<boundColumn; c++ ){
+		for( var r=2; r<row; r++ ){
+			if( grid[c][r].deleting ){
+				grid[c][r].color = "black";
+				grid[c][r].isFilled = false;
+				grid[c][r].deleting = false;
+			}
+		}
+	}
 }
 
 var preLineColumn = 0;
@@ -298,14 +307,20 @@ function deleteGroup(){
 	
 	if( lineColumn != preLineColumn ){
 		var keepDeleting = false;
-		for( var r=3; r<row; r++ ){
-			if( grid[lineColumn][r].deleting ){
-				keepDeleting = true;
-				break;
+		var isDeleting = false;		
+		if( lineColumn > 0 ){
+			for( var r=3; r<row; r++ ){
+				if( grid[lineColumn-1][r].deleting ){
+					isDeleting = true;
+				}
+				if( grid[lineColumn][r].deleting ){
+					keepDeleting = true;
+					break;
+				}
 			}
 		}
-		if( !keepDeleting ){
-			release();
+		if( isDeleting && !keepDeleting ){
+			release( lineColumn );
 		}
 		preLineColumn = lineColumn;
 	}
