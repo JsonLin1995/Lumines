@@ -20,13 +20,13 @@ var row = 12;
 var rotDir = { CW:1, CCW:0 };
 var groupCount = 0;
 var lineX = 0;
-var lineSpeed = 3;
+var lineSpeed = 3.03;
 
 var roundScore = 0;
 var roundScoreMax = 0;
 var totalScore = 0;
 
-var state = { start:0, counting:1, play:2, over:3 };
+var state = { start:0, counting:1, play:2, over:3, instructions:4 };
 var gameState = state.start;
 var countTime = 3*FPS;
 var gameTime = 90*FPS;
@@ -66,8 +66,16 @@ function keyDownHandler(e) {
 	if( gameState == state.start ){
 		if( e.keyCode ){
 			gameState = state.counting;
+			//gameState = state.instructions;
+			//drawInstruct();
 			play = setInterval( draw, 1000/FPS );
 		}
+	}
+	else if( gameState == state.instructions ){
+		if( e.keyCode ){			
+			gameState = state.counting;
+			play = setInterval( draw, 1000/FPS );			
+		}		
 	}
 	else if( gameState == state.play ){
 		if(e.keyCode == 37) {
@@ -356,7 +364,7 @@ function moveDownHandler(){
 		//2 blocks below are filled
 		else{
 			if( cubeCur[1][1] == 1 ){
-				console.log("Game Over.");
+				//console.log("Game Over.");
 				clearInterval( play );
 				gameState = state.over;
 			}
@@ -407,10 +415,16 @@ function drawGroup(){
 			if( grid[c][r].isFilled ){
 				if( checkGroup( c, r ) ){
 					ctx.beginPath();
-					ctx.strokeStyle = "yellow";
-					ctx.fillStyle = grid[c][r].color;
+					ctx.strokeStyle = "white";
+					if( grid[c][r].color == "red" ){
+						ctx.fillStyle = "red";
+					}
+					else{
+						ctx.fillStyle = "gray";
+					}
 					ctx.rect( grid[c][r-1].x, grid[c][r-1].y, 2*blockWidth, 2*blockWidth );
 					ctx.fill();
+					ctx.lineWidth = 3;
 					ctx.stroke();
 					ctx.closePath();
 				}
@@ -422,11 +436,17 @@ function drawGroup(){
 
 function drawTime(){
 	ctx.beginPath();
-	ctx.fillStyle = "white";
+	var text = Math.floor(gameTime/FPS);
+	if( text < 10 ){
+		ctx.fillStyle = "red";
+	}
+	else{
+		ctx.fillStyle = "white";
+	}	
 	ctx.font = 2*blockWidth + "px Arial";
 	ctx.textAlign = "right";	
 	console.log();
-	ctx.fillText( Math.floor(gameTime/FPS), canvas.width-1*blockWidth, 2*blockWidth );	
+	ctx.fillText( text, canvas.width-1*blockWidth, 2*blockWidth );	
 	ctx.closePath();
 }
 
@@ -437,18 +457,36 @@ function drawScore(){
 	ctx.textAlign = "right";
 	//ctx.fillText( roundScore, grid[13][1].x, grid[13][1].y );
 	//ctx.fillText( roundScoreMax, grid[14][1].x, grid[14][1].y );
-	ctx.fillText( totalScore, canvas.width-1*blockWidth, 5*blockWidth );	
+	ctx.fillText( "Score", canvas.width-0.5*blockWidth, 4*blockWidth );
+	ctx.fillText( totalScore, canvas.width-0.5*blockWidth, 5*blockWidth );
+	ctx.font = 0.4*blockWidth + "px Arial";
+	ctx.fillText( "Max in 1 round", canvas.width-0.5*blockWidth, 6*blockWidth );	
+	ctx.fillText( roundScoreMax, canvas.width-0.5*blockWidth, 6.5*blockWidth );
 	ctx.closePath();
 }
 
 function drawLine(){
-	
-	ctx.strokeStyle = '#ff0000';
-	ctx.lineWidth = 2;
 	ctx.beginPath();
+	ctx.strokeStyle = '#ff0000';
+	ctx.lineWidth = 2;	
 	
 	ctx.moveTo(lineX+4*blockWidth, 6*blockWidth); ctx.lineTo(lineX+4*blockWidth, 16*blockWidth);
 	ctx.stroke();
+	ctx.moveTo( lineX+4*blockWidth, 6*blockWidth-blockWidth );
+	ctx.lineTo( lineX+4*blockWidth+0.5*blockWidth, 6*blockWidth-0.5*blockWidth );
+	ctx.stroke();
+	ctx.moveTo( lineX+4*blockWidth, 6*blockWidth );
+	ctx.lineTo( lineX+4*blockWidth+0.5*blockWidth, 6*blockWidth-0.5*blockWidth );
+	ctx.stroke();
+	
+	ctx.rect( lineX+4*blockWidth, 6*blockWidth, -2*blockWidth, -1*blockWidth );
+	ctx.stroke();
+	ctx.font = blockWidth+"px Arial";
+	ctx.textAlign = "center";
+	ctx.fillStyle = "white";
+	ctx.strokeStyle = "black";	
+	ctx.strokeText( roundScore, lineX+4*blockWidth-blockWidth, 6*blockWidth-0.1*blockWidth );
+	ctx.fillText( roundScore, lineX+4*blockWidth-blockWidth, 6*blockWidth-0.1*blockWidth );
 	ctx.closePath();	
 	lineX += lineSpeed * blockPerSec;
 	
@@ -534,11 +572,11 @@ function drawDeleting(){
 				if( deleteWidth > 0 ){
 					//deleteWidth = deleteWidth<0?0:deleteWidth;
 					ctx.beginPath();				
-					ctx.rect( grid[c][r].x, grid[c][r].y, deleteWidth, blockWidth );		
-					ctx.fillStyle = "black";
-					ctx.strokeStyle = "gray";
+					ctx.rect( grid[c][r].x, grid[c][r].y, deleteWidth, blockWidth );				
+					ctx.fillStyle = "rgb(0,0,55)";					
 					ctx.fill();
-					ctx.stroke();
+					ctx.strokeStyle = "gray";
+					ctx.stroke();					
 					ctx.closePath();
 				}
 				
@@ -638,12 +676,28 @@ function draw(){
 	}
 }
 
+function drawInstruct(){
+	ctx.clearRect( 0, 0, canvas.width, canvas.height );
+	ctx.beginPath();	
+	ctx.font = 2*blockWidth+"px Arial";
+	ctx.fillSytle = "white";
+	ctx.strokeSytle = "white";
+	ctx.rect( canvas.width/2-4*blockWidth, canvas.height/2-4*blockWidth, 2*blockWidth, 2*blockWidth );
+	ctx.fill();
+	ctx.closePath();
+}
+
 function drawWelcome(){
 	ctx.beginPath();
 	ctx.fillStyle = "white";
 	ctx.font = 4*blockWidth + "px Arial";
 	ctx.textAlign = "center";
 	ctx.fillText( "Lumines", canvas.width/2, canvas.height/2 );
+	ctx.font = 1*blockWidth + "px Arial";
+	ctx.fillText( "Press any key to start", canvas.width/2, canvas.height/2+2*blockWidth );
+	ctx.textAlign = "right";
+	ctx.font = 0.7*blockWidth+"px Arial";
+	ctx.fillText( "by Json", canvas.width-blockWidth, canvas.height-blockWidth );
 }
 
 function drawCount(){
@@ -652,13 +706,13 @@ function drawCount(){
 	ctx.strokeStyle = "white";
 	ctx.font = 3*blockWidth + "px Arial";
 	ctx.textAlign = "center";
-	ctx.fillText( Math.floor(countTime/FPS)+1, canvas.width/2, canvas.height/2 );
-	ctx.strokeText( Math.floor(countTime/FPS)+1, canvas.width/2, canvas.height/2 );
+	ctx.fillText( Math.floor(countTime/FPS)+1, canvas.width/2, canvas.height/2+3*blockWidth );
+	ctx.strokeText( Math.floor(countTime/FPS)+1, canvas.width/2, canvas.height/2+3*blockWidth );
 }
 
 function gameOver(){	
-	var messBarWidth = 180;
-	var messBarHeight = 50;
+	var messBarWidth = 10*blockWidth;
+	var messBarHeight = 4*blockWidth;
 	ctx.beginPath();
 	ctx.rect( (canvas.width-messBarWidth)/2, (canvas.height-messBarHeight)/2, messBarWidth, messBarHeight );
 	ctx.fillStyle = "gray";
@@ -666,8 +720,10 @@ function gameOver(){
 	ctx.fill();
 	ctx.fillStyle = "black";
 	ctx.textAlign = "center";
-	ctx.font = "30px Arial";
+	ctx.font = blockWidth+"px Arial";
 	ctx.fillText( "Score : "+totalScore, canvas.width/2, canvas.height/2 );
+	ctx.font = 0.5*blockWidth+"px Arial";
+	ctx.fillText( "Press Enter to restart.", canvas.width/2, canvas.height/2+blockWidth );
 	ctx.closePath();
 }
 
