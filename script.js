@@ -29,23 +29,35 @@ var totalScore = 0;
 
 var state = { start:0, play:1, over:2 };
 var gameState = state.play;
+var gameTime = 90*FPS;
+
+var nextList = [];
+var shiftX = 0;
 
 defaultGrid();
-drawGrid();
+resizeCanvas();
+
+$(window).resize(function(){
+	resizeCanvas();
+});
+
+//drawGrid();
 
 //declare cubeCur, cubePre as a 2d array
 for( var i=0; i<4; i++ ){
 	cubeCur[i] = [];
 	cubePre[i] = [];
+	nextList[i] = [];
 }
 
+setNextList();
 resetXy();
 setColor();
 
 document.addEventListener("keydown", keyDownHandler, false);
 document.addEventListener("keyup", keyUpHandler, false);
-
-var play = setInterval( draw, 1000/FPS );
+draw();
+//var play = setInterval( draw, 1000/FPS );
 
 function keyDownHandler(e) {
 	if(e.keyCode == 37) {
@@ -87,15 +99,85 @@ function keyUpHandler(e) {
 	}
 }
 
+function resizeCanvas() {
+	var w_width = $(window).width(), w_height = $(window).height();
+	blockWidth = Math.min( Math.floor(w_width/24) , Math.floor(w_height/18) );
+	$('#myCanvas').attr("width", blockWidth*24).attr("height", blockWidth*18);
+	blockPerSec = blockWidth/FPS;
+	
+	for( var c=0; c<column; c++ ){
+		for( var r=0; r<row; r++ ){
+			grid[c][r].x = c*blockWidth+4*blockWidth;
+			grid[c][r].y = r*blockWidth+4*blockWidth;			
+		}
+	}
+}
+
 //default value for every block
 function defaultGrid(){
 	for( var c=0; c<column; c++ ){
 		grid[c] = [];
 		for( var r=0; r<row; r++ ){
-			grid[c][r] = { x:c*blockWidth, y:r*blockWidth, color:"black", 
+			grid[c][r] = { x:c*blockWidth+4*blockWidth, y:r*blockWidth+4*blockWidth, color:"black", 
 						   isFilled:false, deleting:false  };			
 		}
 	}
+}
+
+function setNextList(){
+	for( var i=0; i<4; i++ ){
+		for( var j=0; j<4; j++ ){
+			nextList[i][j] = Math.random()<0.5?"red":"white";
+		}
+	}
+}
+
+function shiftNext(){
+	for( var i=0; i<3; i++ ){
+		for( var j=0; j<4; j++ ){
+			nextList[i][j] = nextList[i+1][j];
+		}
+	}
+	for( var i=0; i<4; i++ ){
+			nextList[3][i] = Math.random()<0.5?"red":"white";
+		}
+	shiftX = -2;
+}
+
+function drawNextList( dx ){
+	var offsetX = 2;
+	var offsetY = 1;
+	for( var i=0; i<=10; i++ ){
+		for( var j=0; j<=1; j++ ){
+			if( i+dx<=10 ){
+				var index1 = 3-Math.floor(i/3);
+				var index2;
+				if( i%3 == 0 ){
+					//index1 = 3-(i/3);
+					index2 = j;					
+				}
+				else if( i%3 == 1 ){
+					index2 = j+2;
+					//console.log(index1+","+index2);
+				}
+				else{
+					break;
+				}
+				ctx.beginPath();
+				ctx.strokeStyle = "black";
+				ctx.fillStyle = nextList[index1][index2];
+				ctx.rect( (i+dx+offsetX)*blockWidth, (j+offsetY)*blockWidth, blockWidth, blockWidth );
+				ctx.fill();
+				ctx.stroke();
+				ctx.closePath();
+			}
+		}
+	}
+	ctx.beginPath();
+	ctx.fillStyle = "black";
+	ctx.rect( 0, offsetY*blockWidth, 2*blockWidth, 2*blockWidth );
+	ctx.fill();
+	ctx.closePath();
 }
 
 function resetXy(){
@@ -108,8 +190,14 @@ function resetXy(){
 
 function setColor(){
 	for( var i=0; i<4; i++ ){
-		grid[ cubeCur[i][0] ][ cubeCur[i][1] ].color = Math.random()<0.5?"red":"white";
+		grid[ cubeCur[i][0] ][ cubeCur[i][1] ].color = Math.random()<0.5?"red":"white";		
 	}
+}
+
+function getNext(){
+	for( var i=0; i<4; i++ ){
+		grid[ cubeCur[i][0] ][ cubeCur[i][1] ].color = nextList[0][i];	
+	}	
 }
 
 function drawBlock(){
@@ -257,7 +345,9 @@ function moveDownHandler(){
 					}				
 				}
 				resetXy();
-				setColor();
+				//setColor();
+				getNext();
+				shiftNext();
 				dropCounter = -10;
 			}
 			
@@ -268,7 +358,9 @@ function moveDownHandler(){
 			grid[ cubeCur[i][0] ][ cubeCur[i][1] ].isFilled = true;
 		}
 		resetXy();
-		setColor();
+		//setColor();
+		getNext();
+		shiftNext();
 		dropCounter = -10;
 	}
 	dropCounter = -10;
@@ -303,13 +395,24 @@ function drawGroup(){
 	}
 }
 
+function drawTime(){
+	ctx.beginPath();
+	ctx.fillStyle = "white";
+	ctx.font = 2*blockWidth + "px Arial";
+	ctx.textAlign = "right";	
+	console.log();
+	ctx.fillText( Math.floor(gameTime/FPS), canvas.width-1*blockWidth, 2*blockWidth );	
+	ctx.closePath();
+}
+
 function drawScore(){
 	ctx.beginPath();
 	ctx.fillStyle = "white";
-	ctx.font = "15px";
-	ctx.fillText( roundScore, grid[13][1].x, grid[13][1].y );
-	ctx.fillText( roundScoreMax, grid[14][1].x, grid[14][1].y );
-	ctx.fillText( totalScore, grid[15][1].x, grid[15][1].y );	
+	ctx.font = 1*blockWidth + "px Arial";
+	ctx.textAlign = "right";
+	//ctx.fillText( roundScore, grid[13][1].x, grid[13][1].y );
+	//ctx.fillText( roundScoreMax, grid[14][1].x, grid[14][1].y );
+	ctx.fillText( totalScore, canvas.width-1*blockWidth, 5*blockWidth );	
 	ctx.closePath();
 }
 
@@ -319,12 +422,12 @@ function drawLine(){
 	ctx.lineWidth = 2;
 	ctx.beginPath();
 	
-	ctx.moveTo(lineX, 0); ctx.lineTo(lineX, 240);
+	ctx.moveTo(lineX+4*blockWidth, 6*blockWidth); ctx.lineTo(lineX+4*blockWidth, 16*blockWidth);
 	ctx.stroke();
 	ctx.closePath();	
 	lineX += lineSpeed * blockPerSec;
 	
-	if(lineX >= 320){
+	if(lineX+4*blockWidth >= 20*blockWidth){
 		lineX = 0;
 		release( column );
 		totalScore += roundScore;
@@ -351,6 +454,7 @@ var preLineColumn = 0;
 function deleteGroup(){
 	var dXy = [ {x:0, y:-1}, {x:1, y:-1}, {x:0, y:0}, {x:1, y:0} ];
 	var lineColumn = Math.floor(lineX/blockWidth);
+	//console.log(lineColumn);
 	//when lineColumn changes
 	if( lineColumn != preLineColumn ){
 		//count score
@@ -401,7 +505,7 @@ function drawDeleting(){
 	for( var c=0; c<column; c++ ){
 		for( var r=2; r<row; r++ ){
 			if( grid[c][r].deleting ){
-				var deleteWidth = Math.min( lineX-grid[c][r].x, blockWidth );
+				var deleteWidth = Math.min( (lineX+4*blockWidth)-grid[c][r].x, blockWidth );
 				if( deleteWidth > 0 ){
 					//deleteWidth = deleteWidth<0?0:deleteWidth;
 					ctx.beginPath();				
@@ -433,10 +537,20 @@ function gravity(){
 
 function draw(){
 	ctx.clearRect( 0, 0, canvas.width, canvas.height );	
+	drawNextList( shiftX );
 	drawBlock();
 	drawScore();	
 	drawGrid();
 	drawGroup();
+	drawTime();
+	
+	if( gameTime > 0 ){
+		gameTime--;
+	}
+	
+	if( shiftX < 0 ){
+		shiftX += 0.1;
+	}
 	
 	//down pressed
 	if( !isSpliting && downPressed ) {
@@ -461,7 +575,9 @@ function draw(){
 			//grid[ cubeCur[splitSide][0] ][ cubeCur[splitSide][1] ].isFilled = true;
 			//grid[ cubeCur[splitSide-1][0] ][ cubeCur[splitSide-1][1] ].isFilled = true;
 			resetXy();
-			setColor();
+			//setColor();
+			getNext();
+			shiftNext();
 			dropCounter = -10;
 		}
 	}
@@ -490,5 +606,7 @@ function gameOver(){
 	ctx.fill();
 	ctx.fillStyle = "black";
 	ctx.textAlign = "center";
+	ctx.font = "30px Arial";
 	ctx.fillText( "Score : "+totalScore, canvas.width/2, canvas.height/2 );
+	ctx.closePath();
 }
