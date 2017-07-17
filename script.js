@@ -7,7 +7,6 @@ var cubePre = [];
 var cubeCur = [];
 
 var dropCounter = 0;
-var moveCounter = 0;
 
 var rightPressed = false;
 var leftPressed = false;
@@ -27,15 +26,19 @@ var roundScore = 0;
 var roundScoreMax = 0;
 var totalScore = 0;
 
-var state = { start:0, play:1, over:2 };
-var gameState = state.play;
+var state = { start:0, counting:1, play:2, over:3 };
+var gameState = state.start;
+var countTime = 3*FPS;
 var gameTime = 90*FPS;
+var play;
 
 var nextList = [];
 var shiftX = 0;
 
 defaultGrid();
 resizeCanvas();
+
+drawWelcome();
 
 $(window).resize(function(){
 	resizeCanvas();
@@ -56,33 +59,48 @@ setColor();
 
 document.addEventListener("keydown", keyDownHandler, false);
 document.addEventListener("keyup", keyUpHandler, false);
-draw();
+//draw();
 //var play = setInterval( draw, 1000/FPS );
 
 function keyDownHandler(e) {
-	if(e.keyCode == 37) {
-		if( !isSpliting && cubeCur[0][0] > 0 && 
-			( !grid[cubeCur[0][0]-1][cubeCur[0][1]].isFilled && !grid[cubeCur[1][0]-1][cubeCur[1][1]].isFilled ) ){
-			moveLeft();
-		}	
-	}
-	else if(e.keyCode == 38) {
-		if( !isSpliting ){
-			rotate( rotDir.CW );
+	if( gameState == state.start ){
+		if( e.keyCode ){
+			gameState = state.counting;
+			play = setInterval( draw, 1000/FPS );
 		}
 	}
-	else if(e.keyCode == 39) {
-		if( !isSpliting && cubeCur[2][0] < 15 && 
-			( !grid[cubeCur[2][0]+1][cubeCur[2][1]].isFilled && !grid[cubeCur[3][0]+1][cubeCur[3][1]].isFilled ) ){
-			moveRight();
-		}					
+	else if( gameState == state.play ){
+		if(e.keyCode == 37) {
+			if( !isSpliting && cubeCur[0][0] > 0 && 
+				( !grid[cubeCur[0][0]-1][cubeCur[0][1]].isFilled && !grid[cubeCur[1][0]-1][cubeCur[1][1]].isFilled ) ){
+				moveLeft();
+			}	
+		}
+		else if(e.keyCode == 38 ) {
+			if( !isSpliting ){
+				rotate( rotDir.CW );
+			}
+		}
+		else if(e.keyCode == 39) {
+			if( !isSpliting && cubeCur[2][0] < 15 && 
+				( !grid[cubeCur[2][0]+1][cubeCur[2][1]].isFilled && !grid[cubeCur[3][0]+1][cubeCur[3][1]].isFilled ) ){
+				moveRight();
+			}					
+		}
+		else if(e.keyCode == 32) {
+			downPressed = true;								
+		}
+		else if( e.keyCode == 40 ){
+			if( !isSpliting ){
+				rotate( rotDir.CCW );
+			}
+		}
 	}
-	else if(e.keyCode == 32) {
-		downPressed = true;								
-	}
-	else if( e.keyCode == 40 ){
-		if( !isSpliting ){
-			rotate( rotDir.CCW );
+	else if( gameState == state.over ){
+		if( e.keyCode == 13 ){
+			resetGame();
+			gameState = state.counting;
+			play = setInterval( draw, 1000/FPS );
 		}
 	}
 }
@@ -110,6 +128,13 @@ function resizeCanvas() {
 			grid[c][r].x = c*blockWidth+4*blockWidth;
 			grid[c][r].y = r*blockWidth+4*blockWidth;			
 		}
+	}
+	
+	if( gameState == state.start ){
+		drawWelcome();
+	}
+	if( gameState == state.over ){
+		draw();
 	}
 }
 
@@ -544,56 +569,91 @@ function draw(){
 	drawGroup();
 	drawTime();
 	
-	if( gameTime > 0 ){
-		gameTime--;
-	}
-	
-	if( shiftX < 0 ){
-		shiftX += 0.1;
-	}
-	
-	//down pressed
-	if( !isSpliting && downPressed ) {
-		moveDownHandler();		
-	}
-	
-	if( isSpliting ){
-		if( cubeCur[splitSide][1] < 11 && !grid[ cubeCur[splitSide][0] ][ cubeCur[splitSide][1]+1 ].isFilled ){
-			moveDownSide( splitSide );
+	if( gameState == state.counting ){
+		if( countTime > 0 ){
+			drawCount();
+			countTime--;
 		}
 		else{
-			isSpliting = false;
-			for( var i=0; i<2; i++ ){
-				if( cubeCur[splitSide-i][1]<2 ){
-					grid[ cubeCur[splitSide-i][0] ][ cubeCur[splitSide-i][1] ].color = "black";
-				}
-				else{
-					grid[ cubeCur[splitSide-i][0] ][ cubeCur[splitSide-i][1] ].isFilled = true;
-				}
-			}
-			
-			//grid[ cubeCur[splitSide][0] ][ cubeCur[splitSide][1] ].isFilled = true;
-			//grid[ cubeCur[splitSide-1][0] ][ cubeCur[splitSide-1][1] ].isFilled = true;
-			resetXy();
-			//setColor();
-			getNext();
-			shiftNext();
-			dropCounter = -10;
+			gameState = state.play;
 		}
 	}
 	
-	if( !isSpliting && dropCounter == 2000 ){
-		//console.log("go");
-		moveDownHandler();
+	if( gameState == state.play ){
+		if( gameTime > 0 ){
+			gameTime--;
+		}
+		else{
+			clearInterval( play );
+			gameState = state.over;
+		}
+		
+		if( shiftX < 0 ){
+			shiftX += 0.1;
+		}
+		
+		//down pressed
+		if( !isSpliting && downPressed ) {
+			moveDownHandler();		
+		}
+		
+		if( isSpliting ){
+			if( cubeCur[splitSide][1] < 11 && !grid[ cubeCur[splitSide][0] ][ cubeCur[splitSide][1]+1 ].isFilled ){
+				moveDownSide( splitSide );
+			}
+			else{
+				isSpliting = false;
+				for( var i=0; i<2; i++ ){
+					if( cubeCur[splitSide-i][1]<2 ){
+						grid[ cubeCur[splitSide-i][0] ][ cubeCur[splitSide-i][1] ].color = "black";
+					}
+					else{
+						grid[ cubeCur[splitSide-i][0] ][ cubeCur[splitSide-i][1] ].isFilled = true;
+					}
+				}
+				
+				//grid[ cubeCur[splitSide][0] ][ cubeCur[splitSide][1] ].isFilled = true;
+				//grid[ cubeCur[splitSide-1][0] ][ cubeCur[splitSide-1][1] ].isFilled = true;
+				resetXy();
+				//setColor();
+				getNext();
+				shiftNext();
+				dropCounter = -10;
+			}
+		}
+		
+		if( !isSpliting && dropCounter == 2000 ){
+			//console.log("go");
+			moveDownHandler();
+		}
+		dropCounter += 10;	
+		
+		drawDeleting();
+		drawLine();
+		gravity();
 	}
-	dropCounter += 10;	
 	
-	drawDeleting();
-	drawLine();
-	gravity();
 	if( gameState == state.over ){
 		gameOver();
 	}
+}
+
+function drawWelcome(){
+	ctx.beginPath();
+	ctx.fillStyle = "white";
+	ctx.font = 4*blockWidth + "px Arial";
+	ctx.textAlign = "center";
+	ctx.fillText( "Lumines", canvas.width/2, canvas.height/2 );
+}
+
+function drawCount(){
+	ctx.beginPath();
+	ctx.fillStyle = "red";
+	ctx.strokeStyle = "white";
+	ctx.font = 3*blockWidth + "px Arial";
+	ctx.textAlign = "center";
+	ctx.fillText( Math.floor(countTime/FPS)+1, canvas.width/2, canvas.height/2 );
+	ctx.strokeText( Math.floor(countTime/FPS)+1, canvas.width/2, canvas.height/2 );
 }
 
 function gameOver(){	
@@ -609,4 +669,19 @@ function gameOver(){
 	ctx.font = "30px Arial";
 	ctx.fillText( "Score : "+totalScore, canvas.width/2, canvas.height/2 );
 	ctx.closePath();
+}
+
+function resetGame(){
+	dropCounter = 0;
+	countTime = 3*FPS;
+	gameTime = 90*FPS;
+	lineX = 0;
+	totalScore = 0;
+	roundScore = 0;
+	roundScoreMax = 0;
+	
+	defaultGrid();
+	setNextList();
+	resetXy();
+	setColor();
 }
