@@ -443,6 +443,7 @@ function drawGroup(){
 function drawTime(){
 	ctx.beginPath();
 	var text = Math.floor(gameTime/FPS);
+	text = text==90 ?text:text+1;
 	if( text < 10 ){
 		ctx.fillStyle = "red";
 	}
@@ -624,7 +625,7 @@ function draw(){
 	}
 	
 	if( gameState == state.play ){
-		if( gameTime > 0 ){
+		if( gameTime >= 0 ){
 			gameTime--;
 		}
 		else{
