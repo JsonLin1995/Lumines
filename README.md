@@ -1,6 +1,7 @@
 # Lumines
 
-A little game that was popular on old generation cell phones.
+A little game that was popular on old generation cell phones.  
+Game link : https://jsonlin1995.github.io/Lumines/
 
 # How to play
 
