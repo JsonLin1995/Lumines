@@ -65,14 +65,17 @@ document.addEventListener("keyup", keyUpHandler, false);
 function keyDownHandler(e) {
 	if( gameState == state.start ){
 		if( e.keyCode ){
-			gameState = state.counting;
-			//gameState = state.instructions;
+			//gameState = state.counting;
+			gameState = state.instructions;
+			ctx.clearRect( 0, 0, canvas.width, canvas.height );
+			$("#instruct").css("display", "block");
 			//drawInstruct();
-			play = setInterval( draw, 1000/FPS );
+			//play = setInterval( draw, 1000/FPS );
 		}
 	}
 	else if( gameState == state.instructions ){
 		if( e.keyCode ){			
+			$("#instruct").css("display", "none");
 			gameState = state.counting;
 			play = setInterval( draw, 1000/FPS );			
 		}		
@@ -138,12 +141,15 @@ function resizeCanvas() {
 		}
 	}
 	
+	$("#instruct").css( "height", canvas.height );
+	
 	if( gameState == state.start ){
 		drawWelcome();
 	}
 	if( gameState == state.over ){
 		draw();
 	}
+	
 }
 
 //default value for every block
@@ -443,7 +449,7 @@ function drawTime(){
 	else{
 		ctx.fillStyle = "white";
 	}	
-	ctx.font = 2*blockWidth + "px Arial";
+	ctx.font = 2*blockWidth + "px Trebuchet MS";
 	ctx.textAlign = "right";	
 	console.log();
 	ctx.fillText( text, canvas.width-1*blockWidth, 2*blockWidth );	
@@ -453,13 +459,13 @@ function drawTime(){
 function drawScore(){
 	ctx.beginPath();
 	ctx.fillStyle = "white";
-	ctx.font = 1*blockWidth + "px Arial";
+	ctx.font = 1*blockWidth + "px Trebuchet MS";
 	ctx.textAlign = "right";
 	//ctx.fillText( roundScore, grid[13][1].x, grid[13][1].y );
 	//ctx.fillText( roundScoreMax, grid[14][1].x, grid[14][1].y );
 	ctx.fillText( "Score", canvas.width-0.5*blockWidth, 4*blockWidth );
 	ctx.fillText( totalScore, canvas.width-0.5*blockWidth, 5*blockWidth );
-	ctx.font = 0.4*blockWidth + "px Arial";
+	ctx.font = 0.4*blockWidth + "px Trebuchet MS";
 	ctx.fillText( "Max in 1 round", canvas.width-0.5*blockWidth, 6*blockWidth );	
 	ctx.fillText( roundScoreMax, canvas.width-0.5*blockWidth, 6.5*blockWidth );
 	ctx.closePath();
@@ -481,7 +487,7 @@ function drawLine(){
 	
 	ctx.rect( lineX+4*blockWidth, 6*blockWidth, -2*blockWidth, -1*blockWidth );
 	ctx.stroke();
-	ctx.font = blockWidth+"px Arial";
+	ctx.font = blockWidth+"px Trebuchet MS";
 	ctx.textAlign = "center";
 	ctx.fillStyle = "white";
 	ctx.strokeStyle = "black";	
@@ -676,27 +682,16 @@ function draw(){
 	}
 }
 
-function drawInstruct(){
-	ctx.clearRect( 0, 0, canvas.width, canvas.height );
-	ctx.beginPath();	
-	ctx.font = 2*blockWidth+"px Arial";
-	ctx.fillSytle = "white";
-	ctx.strokeSytle = "white";
-	ctx.rect( canvas.width/2-4*blockWidth, canvas.height/2-4*blockWidth, 2*blockWidth, 2*blockWidth );
-	ctx.fill();
-	ctx.closePath();
-}
-
 function drawWelcome(){
 	ctx.beginPath();
 	ctx.fillStyle = "white";
-	ctx.font = 4*blockWidth + "px Arial";
+	ctx.font = 4*blockWidth + "px Trebuchet MS";
 	ctx.textAlign = "center";
 	ctx.fillText( "Lumines", canvas.width/2, canvas.height/2 );
-	ctx.font = 1*blockWidth + "px Arial";
-	ctx.fillText( "Press any key to start", canvas.width/2, canvas.height/2+2*blockWidth );
+	ctx.font = 1*blockWidth + "px Trebuchet MS";
+	ctx.fillText( "Press any key to start", canvas.width/2, canvas.height/2+3*blockWidth );
 	ctx.textAlign = "right";
-	ctx.font = 0.7*blockWidth+"px Arial";
+	ctx.font = 0.7*blockWidth+"px Trebuchet MS";
 	ctx.fillText( "by Json", canvas.width-blockWidth, canvas.height-blockWidth );
 }
 
@@ -704,7 +699,7 @@ function drawCount(){
 	ctx.beginPath();
 	ctx.fillStyle = "red";
 	ctx.strokeStyle = "white";
-	ctx.font = 3*blockWidth + "px Arial";
+	ctx.font = 3*blockWidth + "px Trebuchet MS";
 	ctx.textAlign = "center";
 	ctx.fillText( Math.floor(countTime/FPS)+1, canvas.width/2, canvas.height/2+3*blockWidth );
 	ctx.strokeText( Math.floor(countTime/FPS)+1, canvas.width/2, canvas.height/2+3*blockWidth );
@@ -720,10 +715,10 @@ function gameOver(){
 	ctx.fill();
 	ctx.fillStyle = "black";
 	ctx.textAlign = "center";
-	ctx.font = blockWidth+"px Arial";
+	ctx.font = blockWidth+"px Trebuchet MS";
 	ctx.fillText( "Score : "+totalScore, canvas.width/2, canvas.height/2 );
-	ctx.font = 0.5*blockWidth+"px Arial";
-	ctx.fillText( "Press Enter to restart.", canvas.width/2, canvas.height/2+blockWidth );
+	ctx.font = 0.5*blockWidth+"px Trebuchet MS";
+	ctx.fillText( "Press Enter to restart", canvas.width/2, canvas.height/2+blockWidth );
 	ctx.closePath();
 }
 
