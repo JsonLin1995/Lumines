@@ -26,6 +26,7 @@ var lineSpeed = 3.03;
 var roundScore = 0;
 var roundScoreMax = 0;
 var totalScore = 0;
+var bestRecord;
 
 var state = { start:0, counting:1, play:2, over:3, instructions:4, pause:5 };
 var gameState = state.start;
@@ -36,6 +37,7 @@ var play;
 var nextList = [];
 var shiftX = 0;
 
+checkCookieBestRecord();
 defaultGrid();
 resizeCanvas();
 
@@ -485,13 +487,14 @@ function drawScore(){
 	ctx.fillStyle = "white";
 	ctx.font = 1*blockWidth + "px Trebuchet MS";
 	ctx.textAlign = "right";
-	//ctx.fillText( roundScore, grid[13][1].x, grid[13][1].y );
-	//ctx.fillText( roundScoreMax, grid[14][1].x, grid[14][1].y );
+	
 	ctx.fillText( "Score", canvas.width-0.5*blockWidth, 4*blockWidth );
 	ctx.fillText( totalScore, canvas.width-0.5*blockWidth, 5*blockWidth );
 	ctx.font = 0.4*blockWidth + "px Trebuchet MS";
-	ctx.fillText( "Max in 1 round", canvas.width-0.5*blockWidth, 6*blockWidth );	
-	ctx.fillText( roundScoreMax, canvas.width-0.5*blockWidth, 6.5*blockWidth );
+	ctx.fillText( "Max In 1 Round", canvas.width-0.5*blockWidth, 6.5*blockWidth );	
+	ctx.fillText( roundScoreMax, canvas.width-0.5*blockWidth, 7*blockWidth );
+	ctx.fillText( "Best Record", canvas.width-0.5*blockWidth, 15.5*blockWidth );	
+	ctx.fillText( bestRecord, canvas.width-0.5*blockWidth, 16*blockWidth );
 	ctx.closePath();
 }
 
@@ -546,6 +549,7 @@ function moveLine(){
 		release( column );
 		totalScore += roundScore;
 		roundScoreMax = Math.max( roundScore, roundScoreMax );
+		bestRecord = Math.max( bestRecord, totalScore );
 		roundScore = 0;
 	}
 	deleteGroup();
@@ -778,6 +782,9 @@ function gameOver(){
 	ctx.font = 0.5*blockWidth+"px Trebuchet MS";
 	ctx.fillText( "Press Enter to restart", canvas.width/2, canvas.height/2+blockWidth );
 	ctx.closePath();
+	
+	//set cookie
+	setCookie("bestRecord", bestRecord, 365);
 }
 
 function drawPause(){
@@ -810,4 +817,39 @@ function resetGame(){
 	setNextList();
 	resetXy();
 	setColor();
+}
+
+function setCookie(cname, cvalue, exdays) {
+    var d = new Date();
+    d.setTime(d.getTime() + (exdays*24*60*60*1000));
+    var expires = "expires="+ d.toUTCString();
+    document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+	console.log(cname + "=" + cvalue + ";" + expires + ";path=/");
+}
+
+function getCookie(cname) {
+    var name = cname + "=";
+    var decodedCookie = decodeURIComponent(document.cookie);
+    var ca = decodedCookie.split(';');
+    for(var i = 0; i <ca.length; i++) {
+        var c = ca[i];
+        while (c.charAt(0) == ' ') {
+            c = c.substring(1);
+        }
+        if (c.indexOf(name) == 0) {
+            return c.substring(name.length, c.length);
+        }
+    }
+    return "";
+}
+
+function checkCookieBestRecord() {
+    var best = getCookie("bestRecord");
+    if (best != "") {
+        bestRecord = best;
+    } 
+	else {
+        console.log("no cookie");
+		bestRecord = 0;
+    }
 }
