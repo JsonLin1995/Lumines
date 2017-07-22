@@ -26,7 +26,7 @@ var roundScore = 0;
 var roundScoreMax = 0;
 var totalScore = 0;
 
-var state = { start:0, counting:1, play:2, over:3, instructions:4 };
+var state = { start:0, counting:1, play:2, over:3, instructions:4, pause:5 };
 var gameState = state.start;
 var countTime = 3*FPS;
 var gameTime = 90*FPS;
@@ -106,9 +106,25 @@ function keyDownHandler(e) {
 				rotate( rotDir.CCW );
 			}
 		}
+		else if( e.keyCode == 27 ){		//esc
+			clearInterval( play );
+			gameState = state.pause;
+			drawPause();
+		}
 	}
 	else if( gameState == state.over ){
 		if( e.keyCode == 13 ){
+			resetGame();
+			gameState = state.counting;
+			play = setInterval( draw, 1000/FPS );
+		}
+	}
+	else if( gameState == state.pause ){
+		if( e.keyCode == 27 ){
+			gameState = state.play;
+			play = setInterval( draw, 1000/FPS );
+		}
+		else if( e.keyCode == 13 ){
 			resetGame();
 			gameState = state.counting;
 			play = setInterval( draw, 1000/FPS );
@@ -148,6 +164,9 @@ function resizeCanvas() {
 	}
 	if( gameState == state.over ){
 		draw();
+	}
+	if( gameState == state.pause ){
+		drawPause();
 	}
 	
 }
@@ -432,6 +451,7 @@ function drawGroup(){
 					ctx.fill();
 					ctx.lineWidth = 3;
 					ctx.stroke();
+					ctx.lineWidth = 2;
 					ctx.closePath();
 				}
 			}
@@ -470,6 +490,23 @@ function drawScore(){
 	ctx.fillText( "Max in 1 round", canvas.width-0.5*blockWidth, 6*blockWidth );	
 	ctx.fillText( roundScoreMax, canvas.width-0.5*blockWidth, 6.5*blockWidth );
 	ctx.closePath();
+}
+
+function drawAssist(){
+	for( var i=0; i<2; i++ ){
+		var c = cubeCur[i+1][0];
+		var r = cubeCur[3][1]+1;
+		while( r<12 && !grid[c][r].isFilled ){
+			ctx.beginPath();
+			ctx.rect(grid[c][r].x, grid[c][r].y, blockWidth, blockWidth);		
+			ctx.fillStyle = "rgba(255,255,255,0.2)";
+			ctx.strokeStyle = "gray";
+			ctx.fill();
+			ctx.stroke();
+			ctx.closePath();
+			r++;
+		}
+	}
 }
 
 function drawLine(){
@@ -582,8 +619,10 @@ function drawDeleting(){
 					ctx.rect( grid[c][r].x, grid[c][r].y, deleteWidth, blockWidth );				
 					ctx.fillStyle = "rgb(0,0,55)";					
 					ctx.fill();
-					ctx.strokeStyle = "gray";
-					ctx.stroke();					
+					ctx.lineWidth = 3;
+					ctx.strokeStyle = "white";
+					ctx.stroke();	
+					ctx.lineWidth = 2;
 					ctx.closePath();
 				}
 				
@@ -610,9 +649,14 @@ function draw(){
 	drawNextList( shiftX );
 	drawBlock();
 	drawScore();	
-	drawGrid();
-	drawGroup();
+	drawGrid();	
 	drawTime();
+
+	if( gameState != state.counting ){
+		drawAssist();
+	}
+	
+	drawGroup();
 	
 	if( gameState == state.counting ){
 		if( countTime > 0 ){
@@ -720,6 +764,23 @@ function gameOver(){
 	ctx.fillText( "Score : "+totalScore, canvas.width/2, canvas.height/2 );
 	ctx.font = 0.5*blockWidth+"px Trebuchet MS";
 	ctx.fillText( "Press Enter to restart", canvas.width/2, canvas.height/2+blockWidth );
+	ctx.closePath();
+}
+
+function drawPause(){
+	var messBarWidth = 10*blockWidth;
+	var messBarHeight = 4*blockWidth;
+	ctx.beginPath();
+	ctx.rect( (canvas.width-messBarWidth)/2, (canvas.height-messBarHeight)/2, messBarWidth, messBarHeight );
+	ctx.fillStyle = "gray";
+	ctx.strokeStyle = "white";
+	ctx.fill();
+	ctx.fillStyle = "black";
+	ctx.textAlign = "center";
+	ctx.font = blockWidth+"px Trebuchet MS";
+	ctx.fillText( "Restart?", canvas.width/2, canvas.height/2 );
+	ctx.font = 0.5*blockWidth+"px Trebuchet MS";
+	ctx.fillText( "(Enter/Esc)", canvas.width/2, canvas.height/2+blockWidth );
 	ctx.closePath();
 }
 
