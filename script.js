@@ -1,12 +1,13 @@
 var canvas = document.getElementById("myCanvas");
 var ctx = canvas.getContext("2d");	
 var blockWidth = 20;
-var FPS = 100;
+var FPS = 60;
 var blockPerSec = blockWidth/FPS;
 var cubePre = [];
 var cubeCur = [];
 
 var dropCounter = 0;
+var downPressCounter = 0;
 
 var rightPressed = false;
 var leftPressed = false;
@@ -139,8 +140,9 @@ function keyUpHandler(e) {
 	else if(e.keyCode == 39) {
 		rightPressed = false;
 	}
-	else if(e.keyCode == 40) {
+	else if(e.keyCode == 32) {		//space
 		downPressed = false;
+		downPressCounter = 0;
 	}
 }
 
@@ -683,7 +685,12 @@ function draw(){
 		
 		//down pressed
 		if( !isSpliting && downPressed ) {
-			moveDownHandler();		
+			moveDownHandler();
+			/*if( downPressCounter == 2 ){
+				moveDownHandler();
+				downPressCounter = -1;
+			}
+			downPressCounter++;*/
 		}
 		
 		if( isSpliting ){
