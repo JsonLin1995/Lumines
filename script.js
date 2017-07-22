@@ -1,7 +1,7 @@
 var canvas = document.getElementById("myCanvas");
 var ctx = canvas.getContext("2d");	
 var blockWidth = 20;
-var FPS = 60;
+var FPS = 80;
 var blockPerSec = blockWidth/FPS;
 var cubePre = [];
 var cubeCur = [];
@@ -23,6 +23,7 @@ var groupCount = 0;
 var lineX = 0;
 var lineSpeed = 3.03;
 
+var roundCounter = 0;
 var roundScore = 0;
 var roundScoreMax = 0;
 var totalScore = 0;
@@ -493,8 +494,13 @@ function drawScore(){
 	ctx.font = 0.4*blockWidth + "px Trebuchet MS";
 	ctx.fillText( "Max In 1 Round", canvas.width-0.5*blockWidth, 6.5*blockWidth );	
 	ctx.fillText( roundScoreMax, canvas.width-0.5*blockWidth, 7*blockWidth );
-	ctx.fillText( "Best Record", canvas.width-0.5*blockWidth, 15.5*blockWidth );	
-	ctx.fillText( bestRecord, canvas.width-0.5*blockWidth, 16*blockWidth );
+	
+	ctx.fillText( "Avg.", canvas.width-0.5*blockWidth, 8*blockWidth );	
+	var avg = roundCounter>0 ? (totalScore/roundCounter).toFixed(1) : 0;
+	avg = Math.round( avg*10 )/10;
+	ctx.fillText( avg+"  /Round", canvas.width-0.5*blockWidth, 8.5*blockWidth );
+	ctx.fillText( "Best Record", canvas.width-0.5*blockWidth, 15.4*blockWidth );	
+	ctx.fillText( bestRecord, canvas.width-0.5*blockWidth, 15.9*blockWidth );
 	ctx.closePath();
 }
 
@@ -551,6 +557,7 @@ function moveLine(){
 		roundScoreMax = Math.max( roundScore, roundScoreMax );
 		bestRecord = Math.max( bestRecord, totalScore );
 		roundScore = 0;
+		roundCounter++;
 	}
 	deleteGroup();
 }
@@ -812,6 +819,7 @@ function resetGame(){
 	totalScore = 0;
 	roundScore = 0;
 	roundScoreMax = 0;
+	roundCounter = 0;
 	
 	defaultGrid();
 	setNextList();
