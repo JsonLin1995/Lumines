@@ -168,6 +168,7 @@ function resizeCanvas() {
 		draw();
 	}
 	if( gameState == state.pause ){
+		draw();
 		drawPause();
 	}
 	
@@ -534,6 +535,10 @@ function drawLine(){
 	ctx.strokeText( roundScore, lineX+4*blockWidth-blockWidth, 6*blockWidth-0.1*blockWidth );
 	ctx.fillText( roundScore, lineX+4*blockWidth-blockWidth, 6*blockWidth-0.1*blockWidth );
 	ctx.closePath();	
+	
+}
+
+function moveLine(){
 	lineX += lineSpeed * blockPerSec;
 	
 	if(lineX+4*blockWidth >= 20*blockWidth){
@@ -725,10 +730,11 @@ function draw(){
 		dropCounter += 10;	
 		
 		drawDeleting();
-		drawLine();
+		moveLine();
+		//drawLine();
 		gravity();
 	}
-	
+	drawLine();
 	if( gameState == state.over ){
 		gameOver();
 	}
