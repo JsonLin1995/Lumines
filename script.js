@@ -441,7 +441,7 @@ function checkGroup( x, y ){
 }
 
 function drawGroup(){
-	for( var c=column-2; c>0; c-- ){
+	for( var c=column-2; c>=0; c-- ){
 		for( var r=3; r<row; r++ ){
 			if( grid[c][r].isFilled ){
 				if( checkGroup( c, r ) ){
