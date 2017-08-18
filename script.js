@@ -179,11 +179,12 @@ function resizeCanvas() {
 
 //default value for every block
 function defaultGrid(){
+	var offsetX = 4, offsetY = 4;
 	for( var c=0; c<column; c++ ){
 		grid[c] = [];
 		for( var r=0; r<row; r++ ){
-			grid[c][r] = { x:c*blockWidth+4*blockWidth, y:r*blockWidth+4*blockWidth, color:"black", 
-						   isFilled:false, deleting:false  };			
+			grid[c][r] = { x:(c+offsetX)*blockWidth, y:(r+offsetY)*blockWidth, 
+						   color:"black", isFilled:false, deleting:false  };			
 		}
 	}
 }
@@ -205,7 +206,13 @@ function shiftNext(){
 	for( var i=0; i<4; i++ ){
 			nextList[3][i] = Math.random()<0.5?"red":"white";
 		}
-	shiftX = -2;
+	shiftX = -3;
+	/*
+	shiftX 代表nextList的偏移量, 0是正確位置, -3是往左偏移3個blockWidth
+	偏移-3是在上一個的位置
+	shiftNext邏輯上是瞬間把方塊換到下一個位置上
+	但是利用偏移-3~0產生移動過去的感覺
+	*/
 }
 
 function drawNextList( dx ){
@@ -213,11 +220,10 @@ function drawNextList( dx ){
 	var offsetY = 1;
 	for( var i=0; i<=10; i++ ){
 		for( var j=0; j<=1; j++ ){
-			if( i+dx<=10 ){
+			//if( i+dx<=10 ){
 				var index1 = 3-Math.floor(i/3);
 				var index2;
 				if( i%3 == 0 ){
-					//index1 = 3-(i/3);
 					index2 = j;					
 				}
 				else if( i%3 == 1 ){
@@ -234,9 +240,10 @@ function drawNextList( dx ){
 				ctx.fill();
 				ctx.stroke();
 				ctx.closePath();
-			}
+			//}
 		}
 	}
+	//畫一塊黑, 把新生出來的方塊, 超過顯示區域的部分蓋掉
 	ctx.beginPath();
 	ctx.fillStyle = "black";
 	ctx.rect( 0, offsetY*blockWidth, 2*blockWidth, 2*blockWidth );
@@ -417,6 +424,7 @@ function moveDownHandler(){
 			
 		}
 	}
+	//at the bottom
 	else{
 		for( var i=0; i<4; i++ ){
 			grid[ cubeCur[i][0] ][ cubeCur[i][1] ].isFilled = true;
@@ -697,7 +705,7 @@ function draw(){
 		
 		if( shiftX < 0 ){
 			shiftX += 0.1;
-		}
+		}		
 		
 		//down pressed
 		if( !isSpliting && downPressed ) {
